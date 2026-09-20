@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, CheckCircle } from 'lucide-react';
+import { ShoppingCart, CheckCircle, Plus, Minus, Trash2 } from 'lucide-react';
 
 const Catalogo = ({ carrito, setCarrito, isCartOpen, searchTerm }) => {
   const [productos, setProductos] = useState([]);
@@ -17,6 +17,20 @@ const Catalogo = ({ carrito, setCarrito, isCartOpen, searchTerm }) => {
       if (existe) return prev.map(item => item.id === prod.id ? { ...item, cantidad: item.cantidad + 1 } : item);
       return [...prev, { ...prod, cantidad: 1 }];
     });
+  };
+
+  const actualizarCantidad = (id, delta) => {
+    setCarrito(prev => prev.map(item => {
+      if (item.id === id) {
+        const nuevaCantidad = item.cantidad + delta;
+        return { ...item, cantidad: nuevaCantidad };
+      }
+      return item;
+    }).filter(item => item.cantidad > 0));
+  };
+
+  const eliminarDelCarrito = (id) => {
+    setCarrito(prev => prev.filter(item => item.id !== id));
   };
 
   const totalCarrito = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
@@ -106,22 +120,47 @@ const Catalogo = ({ carrito, setCarrito, isCartOpen, searchTerm }) => {
             <p className="text-gray-400 text-center py-10">Tu carrito está vacío</p>
           ) : (
             <div className="space-y-4">
-              <div className="divide-y divide-gray-100 max-h-60 overflow-y-auto pr-2">
+              <div className="divide-y divide-gray-100 max-h-[60vh] overflow-y-auto pr-2">
                 {carrito.map(item => (
-                  <div key={item.id} className="py-3 flex justify-between items-center">
-                    <div>
-                      <h4 className="font-semibold text-sm text-gray-800">{item.nombre}</h4>
-                      <p className="text-xs text-gray-500">Cant: {item.cantidad} x ${item.precio}</p>
+                  <div key={item.id} className="py-4 flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-semibold text-gray-800">{item.nombre}</h4>
+                        <p className="font-bold text-emerald-600">${item.precio}</p>
+                      </div>
+                      <button onClick={() => eliminarDelCarrito(item.id)} className="text-gray-400 hover:text-red-500 transition">
+                        <Trash2 size={18} />
+                      </button>
                     </div>
-                    <span className="font-bold text-emerald-600">${item.precio * item.cantidad}</span>
+                    
+                    <div className="flex justify-between items-center mt-1">
+                      <div className="flex items-center border border-gray-300 rounded-full overflow-hidden shadow-sm">
+                        <button 
+                          onClick={() => actualizarCantidad(item.id, -1)} 
+                          className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 transition flex items-center justify-center"
+                        >
+                          {item.cantidad === 1 ? <Trash2 size={16} className="text-gray-500"/> : <Minus size={16} />}
+                        </button>
+                        <span className="px-3 font-bold text-gray-800 w-10 text-center border-x border-gray-200">
+                          {item.cantidad}
+                        </span>
+                        <button 
+                          onClick={() => actualizarCantidad(item.id, 1)} 
+                          className="px-3 py-1.5 bg-red-600 text-white hover:bg-red-700 transition flex items-center justify-center"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                      <span className="font-bold text-gray-900 text-lg">${item.precio * item.cantidad}</span>
+                    </div>
                   </div>
                 ))}
               </div>
               <div className="border-t pt-4">
-                <div className="flex justify-between text-lg font-black text-gray-900 mb-4">
+                <div className="flex justify-between text-xl font-black text-gray-900 mb-6">
                   <span>Total:</span> <span className="text-emerald-600">${totalCarrito}</span>
                 </div>
-                <button onClick={finalizarCompra} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">
+                <button onClick={finalizarCompra} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors shadow-md">
                   Confirmar y Pagar
                 </button>
               </div>

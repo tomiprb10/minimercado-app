@@ -8,14 +8,24 @@ import MisPedidos from './pages/MisPedidos';
 
 function App() {
   const [usuario, setUsuario] = useState(null);
-  const [carrito, setCarrito] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Inicializar carrito desde localStorage
+  const [carrito, setCarrito] = useState(() => {
+    const carritoGuardado = localStorage.getItem('carrito');
+    return carritoGuardado ? JSON.parse(carritoGuardado) : [];
+  });
 
   useEffect(() => {
     const userStorage = localStorage.getItem('usuario');
     if (userStorage) setUsuario(JSON.parse(userStorage));
   }, []);
+
+  // Guardar carrito en localStorage cada vez que cambie
+  useEffect(() => {
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+  }, [carrito]);
 
   const cerrarSesion = () => {
     localStorage.removeItem('token');
@@ -30,13 +40,12 @@ function App() {
         <Navbar 
           usuario={usuario} 
           cerrarSesion={cerrarSesion} 
-          carritoCount={carrito.length}
+          carritoCount={carrito.reduce((acc, item) => acc + item.cantidad, 0)}
           isCartOpen={isCartOpen}
           setIsCartOpen={setIsCartOpen}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
         />
-        
         <Routes>
           <Route path="/" element={<Catalogo carrito={carrito} setCarrito={setCarrito} isCartOpen={isCartOpen} searchTerm={searchTerm} />} />
           <Route path="/login" element={<Login />} />

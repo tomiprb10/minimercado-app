@@ -42,6 +42,18 @@ const AdminDashboard = () => {
     } catch (error) { console.error(error); }
   };
 
+  const eliminarProducto = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar este producto?')) return;
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:3000/api/productos/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) fetchProductos();
+    } catch (error) { console.error('Error eliminando:', error); }
+  };
+
   return (
     <div className="container mx-auto mt-8 p-4">
       <h2 className="text-3xl font-extrabold text-gray-800 mb-6 flex items-center gap-2">
@@ -79,7 +91,12 @@ const AdminDashboard = () => {
                 <tr key={prod.id} className="border-b border-gray-100">
                   <td className="p-3">{prod.id}</td><td className="p-3 font-semibold">{prod.nombre}</td>
                   <td className="p-3 flex gap-2">
-                    <button onClick={() => prepararEdicion(prod)} className="text-blue-500 bg-blue-50 p-2 rounded-lg"><Edit2 size={18}/></button>
+                    <button onClick={() => prepararEdicion(prod)} className="text-blue-500 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition" title="Editar">
+                      <Edit2 size={18}/>
+                    </button>
+                    <button onClick={() => eliminarProducto(prod.id)} className="text-red-500 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition" title="Eliminar">
+                      <Trash2 size={18}/>
+                    </button>
                   </td>
                 </tr>
               ))}
