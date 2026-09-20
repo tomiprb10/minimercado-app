@@ -4,16 +4,17 @@ import Navbar from './components/Navbar';
 import Catalogo from './pages/Catalogo';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
+import MisPedidos from './pages/MisPedidos';
 
 function App() {
   const [usuario, setUsuario] = useState(null);
+  const [carrito, setCarrito] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Leer usuario al cargar la app
   useEffect(() => {
     const userStorage = localStorage.getItem('usuario');
-    if (userStorage) {
-      setUsuario(JSON.parse(userStorage));
-    }
+    if (userStorage) setUsuario(JSON.parse(userStorage));
   }, []);
 
   const cerrarSesion = () => {
@@ -26,13 +27,21 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        {/* Pasamos los props al Navbar */}
-        <Navbar usuario={usuario} cerrarSesion={cerrarSesion} />
+        <Navbar 
+          usuario={usuario} 
+          cerrarSesion={cerrarSesion} 
+          carritoCount={carrito.length}
+          isCartOpen={isCartOpen}
+          setIsCartOpen={setIsCartOpen}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
         
         <Routes>
-          <Route path="/" element={<Catalogo />} />
+          <Route path="/" element={<Catalogo carrito={carrito} setCarrito={setCarrito} isCartOpen={isCartOpen} searchTerm={searchTerm} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/mis-pedidos" element={<MisPedidos />} />
         </Routes>
       </div>
     </Router>
