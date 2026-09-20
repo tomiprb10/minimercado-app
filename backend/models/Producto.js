@@ -11,6 +11,11 @@ const Producto = sequelize.define('Producto', {
     type: DataTypes.FLOAT,
     allowNull: false
   },
+  stock: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
   imagen: {
     type: DataTypes.STRING,
     defaultValue: 'https://via.placeholder.com/150'
