@@ -4,6 +4,7 @@ const Pedido = require('../models/Pedido');
 const PedidoItem = require('../models/PedidoItem');
 const Producto = require('../models/Producto');
 
+
 // Ruta para crear un nuevo pedido
 router.post('/', async (req, res) => {
   try {
