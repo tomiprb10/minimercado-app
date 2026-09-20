@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors'); 
 const sequelize = require('./database');
 const Producto = require('./models/Producto');
+const Usuario = require('./models/Usuario');
+const Pedido = require('./models/Pedido');
+const PedidoItem = require('./models/PedidoItem');
 
 const app = express();
 
