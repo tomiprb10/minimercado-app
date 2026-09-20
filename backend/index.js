@@ -12,6 +12,8 @@ const app = express();
 app.use(cors()); 
 app.use(express.json());
 
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
 // Ruta para obtener los productos
 app.get('/api/productos', async (req, res) => {
   try {
