@@ -29,9 +29,16 @@ const Catalogo = () => {
   // Función para calcular el total
   const totalCarrito = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
 
-  // Función para procesar la compra (Enviar a la API)
+// Función para procesar la compra
   const finalizarCompra = async () => {
     if (carrito.length === 0) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Debes iniciar sesión para realizar una compra.');
+      // Opcional: Redirigir al login -> window.location.href = '/login';
+      return;
+    }
 
     const itemsFormateados = carrito.map(item => ({
       productoId: item.id,
@@ -42,9 +49,11 @@ const Catalogo = () => {
     try {
       const response = await fetch('http://localhost:3000/api/pedidos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Enviamos el JWT aquí
+        },
         body: JSON.stringify({
-          UsuarioId: 1, // Usuario por defecto temporal
           items: itemsFormateados,
           total: totalCarrito
         })
@@ -54,8 +63,7 @@ const Catalogo = () => {
       if (response.ok) {
         setMensajeExito(`¡Compra exitosa! Pedido #${data.pedidoId} creado.`);
         setCarrito([]);
-        // Recargar productos para actualizar stock visual
-        window.location.reload(); 
+        setTimeout(() => window.location.reload(), 2000); 
       } else {
         alert('Error al procesar la compra: ' + data.error);
       }
