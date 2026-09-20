@@ -5,6 +5,19 @@ const PedidoItem = require('../models/PedidoItem');
 const Producto = require('../models/Producto');
 const verificarToken = require('../middleware/authMiddleware');
 
+// GET: Obtener historial de pedidos del usuario logueado
+router.get('/mis-pedidos', verificarToken, async (req, res) => {
+  try {
+    const historial = await Pedido.findAll({
+      where: { UsuarioId: req.usuario.id },
+      order: [['createdAt', 'DESC']] // Ordenar del más reciente al más antiguo
+    });
+    res.json(historial);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener el historial de pedidos' });
+  }
+});
 // La ruta ahora exige 'verificarToken' antes de ejecutar la compra
 router.post('/', verificarToken, async (req, res) => {
   try {

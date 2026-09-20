@@ -36,4 +36,20 @@ router.delete('/:id', verificarToken, verificarAdmin, async (req, res) => {
   }
 });
 
+// PUT: Solo Admin (Editar producto)
+router.put('/:id', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, precio, stock, imagen } = req.body;
+    
+    const producto = await Producto.findByPk(id);
+    if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
+
+    await producto.update({ nombre, precio, stock, imagen });
+    res.json({ mensaje: 'Producto actualizado exitosamente', producto });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al actualizar producto' });
+  }
+});
+
 module.exports = router;
