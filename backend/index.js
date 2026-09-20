@@ -12,17 +12,15 @@ const app = express();
 app.use(cors()); 
 app.use(express.json());
 
+// 1. Rutas de Autenticación
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
-// Ruta para obtener los productos
-app.get('/api/productos', async (req, res) => {
-  try {
-    const productos = await Producto.findAll();
-    res.json(productos);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener productos' });
-  }
-});
+
+// 2. Rutas de Productos (Aquí es donde la importas y la usas limpiamente)
+const productosRoutes = require('./routes/productos');
+app.use('/api/productos', productosRoutes);
+
+// 3. Rutas de Pedidos
 const pedidosRoutes = require('./routes/pedidos');
 app.use('/api/pedidos', pedidosRoutes);
 
