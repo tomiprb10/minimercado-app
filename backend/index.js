@@ -21,6 +21,8 @@ app.get('/api/productos', async (req, res) => {
     res.status(500).json({ error: 'Error al obtener productos' });
   }
 });
+const pedidosRoutes = require('./routes/pedidos');
+app.use('/api/pedidos', pedidosRoutes);
 
 const PORT = process.env.PORT || 3000;
 
