@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, CheckCircle, Plus, Minus, Trash2 } from 'lucide-react';
+import { ShoppingCart, CheckCircle, Plus, Minus, Trash2, X } from 'lucide-react';
 
 const Catalogo = ({ carrito, setCarrito, isCartOpen, searchTerm }) => {
   const [productos, setProductos] = useState([]);
   const [mensajeExito, setMensajeExito] = useState('');
+  const [errorStock, setErrorStock] = useState('');
 
   useEffect(() => {
     fetch('http://localhost:3000/api/productos')
@@ -11,22 +12,47 @@ const Catalogo = ({ carrito, setCarrito, isCartOpen, searchTerm }) => {
       .then(data => setProductos(data));
   }, []);
 
+  const mostrarErrorStock = (nombre) => {
+    setErrorStock(`No está disponible la cantidad deseada para el ítem ${nombre}`);
+    setTimeout(() => setErrorStock(''), 4000);
+  };
+
   const agregarAlCarrito = (prod) => {
     setCarrito(prev => {
       const existe = prev.find(item => item.id === prod.id);
-      if (existe) return prev.map(item => item.id === prod.id ? { ...item, cantidad: item.cantidad + 1 } : item);
+      if (existe) {
+        if (existe.cantidad >= prod.stock) {
+          mostrarErrorStock(prod.nombre);
+          return prev;
+        }
+        return prev.map(item => item.id === prod.id ? { ...item, cantidad: item.cantidad + 1 } : item);
+      }
+      if (prod.stock < 1) {
+        mostrarErrorStock(prod.nombre);
+        return prev;
+      }
       return [...prev, { ...prod, cantidad: 1 }];
     });
   };
 
   const actualizarCantidad = (id, delta) => {
-    setCarrito(prev => prev.map(item => {
-      if (item.id === id) {
-        const nuevaCantidad = item.cantidad + delta;
-        return { ...item, cantidad: nuevaCantidad };
+    setCarrito(prev => {
+      const itemActual = prev.find(item => item.id === id);
+      
+      // Validar que no supere el stock al intentar sumar
+      if (delta > 0 && itemActual && itemActual.cantidad >= itemActual.stock) {
+        mostrarErrorStock(itemActual.nombre);
+        return prev; 
       }
-      return item;
-    }).filter(item => item.cantidad > 0));
+
+      return prev.map(item => {
+        if (item.id === id) {
+          const nuevaCantidad = item.cantidad + delta;
+          return { ...item, cantidad: nuevaCantidad };
+        }
+        return item;
+      }).filter(item => item.cantidad > 0);
+    });
   };
 
   const eliminarDelCarrito = (id) => {
@@ -69,9 +95,19 @@ const Catalogo = ({ carrito, setCarrito, isCartOpen, searchTerm }) => {
   );
 
   return (
-    <main className="container mx-auto mt-8 p-4 flex gap-8 transition-all duration-300">
+    <main className="container mx-auto mt-8 p-4 flex gap-8 transition-all duration-300 relative overflow-hidden">
       
-      {/* Catálogo dinámico: Si el carrito está abierto ocupa menos espacio, si está cerrado ocupa todo */}
+      {/* Alerta de Error de Stock estilo D1 */}
+      {errorStock && (
+        <div className="fixed bottom-10 left-10 z-50 animate-fade-in flex items-start gap-4 bg-red-600 text-white px-6 py-4 rounded shadow-2xl max-w-md">
+          <p className="text-sm font-medium leading-tight">{errorStock}</p>
+          <button onClick={() => setErrorStock('')} className="text-white hover:text-gray-200 mt-0.5">
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* Catálogo dinámico */}
       <div className={`transition-all duration-500 ${isCartOpen ? 'w-full lg:w-2/3' : 'w-full'}`}>
         <h2 className="text-3xl font-extrabold text-gray-800 mb-6">Catálogo Disponible</h2>
         
@@ -86,8 +122,8 @@ const Catalogo = ({ carrito, setCarrito, isCartOpen, searchTerm }) => {
             <p className="col-span-full text-center text-gray-500 py-10">No se encontraron productos.</p>
           ) : (
             productosFiltrados.map(prod => (
-              <div key={prod.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col group">
-                <div className="relative h-48 p-4 flex justify-center items-center bg-gray-50">
+              <div key={prod.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col group relative">
+                <div className="relative h-48 p-4 flex justify-center items-center bg-gray-50 rounded-t-2xl">
                   <img src={prod.imagen} alt={prod.nombre} className="max-h-full object-contain group-hover:scale-105 transition-transform" />
                   {prod.stock < 20 && prod.stock > 0 && <span className="absolute top-3 left-3 bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full">¡Quedan {prod.stock}!</span>}
                 </div>
@@ -146,7 +182,7 @@ const Catalogo = ({ carrito, setCarrito, isCartOpen, searchTerm }) => {
                         </span>
                         <button 
                           onClick={() => actualizarCantidad(item.id, 1)} 
-                          className="px-3 py-1.5 bg-red-600 text-white hover:bg-red-700 transition flex items-center justify-center"
+                          className={`px-3 py-1.5 transition flex items-center justify-center ${item.cantidad >= item.stock ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'}`}
                         >
                           <Plus size={16} />
                         </button>
