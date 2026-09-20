@@ -3,20 +3,19 @@ const router = express.Router();
 const Pedido = require('../models/Pedido');
 const PedidoItem = require('../models/PedidoItem');
 const Producto = require('../models/Producto');
+const verificarToken = require('../middleware/authMiddleware');
 
-
-// Ruta para crear un nuevo pedido
-router.post('/', async (req, res) => {
+// La ruta ahora exige 'verificarToken' antes de ejecutar la compra
+router.post('/', verificarToken, async (req, res) => {
   try {
-    const { UsuarioId, items, total } = req.body; // items es un array con [{ productoId, cantidad, precio }]
+    const { items, total } = req.body;
+    const usuarioId = req.usuario.id; // Extraído de forma segura desde el JWT
 
-    // 1. Crear el pedido principal
     const nuevoPedido = await Pedido.create({
       total,
-      UsuarioId: UsuarioId || 1 // Por defecto asignamos el usuario 1 si no hay sesión estricta aún
+      UsuarioId: usuarioId 
     });
 
-    // 2. Crear los ítems asociados y descontar el stock
     for (const item of items) {
       await PedidoItem.create({
         PedidoId: nuevoPedido.id,
@@ -25,7 +24,6 @@ router.post('/', async (req, res) => {
         precio_unitario: item.precio
       });
 
-      // Actualizar el stock del producto
       const producto = await Producto.findByPk(item.productoId);
       if (producto) {
         producto.stock -= item.cantidad;
