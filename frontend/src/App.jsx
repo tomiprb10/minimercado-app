@@ -1,6 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 function App() {
+  const [productos, setProductos] = useState([]);
+
+  useEffect(() => {
+    // Petición al backend local
+    fetch('http://localhost:3000/api/productos')
+      .then(res => res.json())
+      .then(data => setProductos(data))
+      .catch(err => console.error("Error cargando productos:", err));
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-green-600 p-4 text-white shadow-md">
@@ -13,17 +23,36 @@ function App() {
       </nav>
 
       <main className="container mx-auto mt-8 p-4">
-        <h2 className="text-xl font-semibold mb-4">Catálogo de Productos</h2>
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">Catálogo de Productos</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Aquí mapearemos los productos del Backend más adelante */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="bg-gray-300 h-32 w-full rounded mb-4"></div>
-            <h3 className="font-bold text-lg">Producto de ejemplo</h3>
-            <p className="text-green-600 font-bold mt-2">$0.00</p>
-            <button className="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
-              Añadir al carrito
-            </button>
-          </div>
+          {productos.length === 0 ? (
+            <p className="text-gray-500 text-center col-span-3">Cargando inventario...</p>
+          ) : (
+            productos.map(prod => (
+              <div key={prod.id} className="bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <img 
+                  src={prod.imagen} 
+                  alt={prod.nombre} 
+                  className="h-48 w-full object-cover rounded mb-4 border border-gray-200" 
+                />
+                <h3 className="font-bold text-lg text-gray-800">{prod.nombre}</h3>
+                
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-green-600 font-bold text-xl">${prod.precio}</p>
+                  <span className="bg-gray-200 text-gray-700 text-sm px-2 py-1 rounded">
+                    Stock: {prod.stock}
+                  </span>
+                </div>
+
+                <button 
+                  className="mt-5 w-full bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 disabled:bg-gray-400"
+                  disabled={prod.stock === 0}
+                >
+                  {prod.stock === 0 ? 'Agotado' : 'Añadir al carrito'}
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </main>
     </div>
